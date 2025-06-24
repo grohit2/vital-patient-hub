@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Copy, QrCode, Calendar, User, Stethoscope, Pill, FlaskConical, CheckSquare, Users } from 'lucide-react';
+import { ArrowLeft, Copy, QrCode, User, Pill, FlaskConical, CheckSquare, Users, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import PatientTimeline from '@/components/PatientTimeline';
 import MedicationSheet from '@/components/MedicationSheet';
 import LabPanel from '@/components/LabPanel';
@@ -15,7 +15,7 @@ import CareTeam from '@/components/CareTeam';
 const PatientDetail = () => {
   const { id } = useParams();
   
-  // Mock patient data - in real app this would come from API
+  // Mock patient data
   const patient = {
     id: id,
     name: "Maheshwari S.",
@@ -40,10 +40,32 @@ const PatientDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger />
+            <Link to="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </div>
+          <Badge className={`${patient.stageColor} text-white px-3 py-1 text-sm font-semibold`}>
+            {patient.stage}
+          </Badge>
+        </div>
+        
+        <div className="mt-3">
+          <h1 className="text-xl font-bold text-gray-900">
+            {patient.name}
+          </h1>
+          <p className="text-sm text-gray-600">{patient.sex} {patient.age} y • {patient.mrn}</p>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block p-6">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4 mb-4">
             <Link to="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
               <ArrowLeft className="h-5 w-5" />
@@ -81,106 +103,123 @@ const PatientDetail = () => {
             </Badge>
           </div>
         </div>
+      </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Diagnosis & Timeline */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Diagnosis & Stage Block */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Diagnosis & Stage
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Primary Diagnosis</label>
-                  <Badge variant="outline" className="mt-1 px-4 py-2 text-lg font-medium">
-                    {patient.primaryDiagnosis}
-                  </Badge>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Comorbidities</label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {patient.comorbidities.map((condition, index) => (
-                      <Badge key={index} variant="secondary" className="text-sm">
-                        {condition}
-                      </Badge>
-                    ))}
+      {/* Main Content */}
+      <div className="p-4 md:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
+              {/* Diagnosis & Stage Block */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <User className="h-5 w-5" />
+                    Diagnosis & Stage
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Primary Diagnosis</label>
+                    <Badge variant="outline" className="mt-1 px-3 py-1 text-base font-medium block w-fit">
+                      {patient.primaryDiagnosis}
+                    </Badge>
                   </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Current Stage & Days</label>
-                  <p className="text-lg font-semibold mt-1">
-                    {patient.currentStage} ({patient.stageDays} days)
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 mb-3 block">Timeline / History</label>
-                  <PatientTimeline segments={patient.timeline} />
-                </div>
-              </CardContent>
-            </Card>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Comorbidities</label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {patient.comorbidities.map((condition, index) => (
+                        <Badge key={index} variant="secondary" className="text-sm">
+                          {condition}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Current Stage & Days</label>
+                    <p className="text-lg font-semibold mt-1">
+                      {patient.currentStage} ({patient.stageDays} days)
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 mb-3 block">Timeline / History</label>
+                    <PatientTimeline segments={patient.timeline} />
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Medication Sheet */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Pill className="h-5 w-5" />
-                  Medication Sheet
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MedicationSheet patientId={patient.id} />
-              </CardContent>
-            </Card>
+              {/* Medication Sheet */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Pill className="h-5 w-5" />
+                    Medication Sheet
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MedicationSheet patientId={patient.id} />
+                </CardContent>
+              </Card>
 
-            {/* Lab Feed / Metrics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FlaskConical className="h-5 w-5" />
-                  Lab Results & Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LabPanel patientId={patient.id} />
-              </CardContent>
-            </Card>
-          </div>
+              {/* Lab Results - Mobile: move to right column on larger screens */}
+              <Card className="lg:hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FlaskConical className="h-5 w-5" />
+                    Lab Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LabPanel patientId={patient.id} />
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Right Column - Tasks & Care Team */}
-          <div className="space-y-6">
-            {/* Task Board */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckSquare className="h-5 w-5" />
-                  Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TaskBoard patientId={patient.id} />
-              </CardContent>
-            </Card>
+            {/* Right Column - Secondary Content */}
+            <div className="space-y-4 md:space-y-6">
+              {/* Tasks */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <CheckSquare className="h-5 w-5" />
+                    Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TaskBoard patientId={patient.id} />
+                </CardContent>
+              </Card>
 
-            {/* Care Team */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Care Team
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CareTeam patientId={patient.id} />
-              </CardContent>
-            </Card>
+              {/* Care Team */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Users className="h-5 w-5" />
+                    Care Team
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CareTeam patientId={patient.id} />
+                </CardContent>
+              </Card>
+
+              {/* Lab Results - Desktop only */}
+              <Card className="hidden lg:block">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FlaskConical className="h-5 w-5" />
+                    Lab Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LabPanel patientId={patient.id} />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

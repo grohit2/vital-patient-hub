@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Bell, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import PatientCard from '@/components/PatientCard';
 import PatientStoryRing from '@/components/PatientStoryRing';
 
@@ -74,9 +75,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      {/* Mobile Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger />
+            <h1 className="text-xl font-bold text-gray-900">Patients</h1>
+          </div>
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add
+          </Button>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-gray-900">Patients</h1>
             <div className="relative">
@@ -87,28 +102,23 @@ const Index = () => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Patient
-            </Button>
-          </div>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Patient
+          </Button>
         </div>
       </div>
 
-      {/* Patient Stories - Instagram Style */}
-      <div className="bg-white border-b border-gray-200 py-4">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-4 overflow-x-auto pb-2">
+      {/* Patient Stories - Mobile Optimized */}
+      <div className="bg-white border-b border-gray-200 py-3">
+        <div className="px-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <Plus className="h-6 w-6 text-gray-400" />
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gray-200 flex items-center justify-center border-2 border-dashed border-gray-300">
+                  <Plus className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
                 </div>
-                <span className="text-xs text-gray-600">Add Story</span>
+                <span className="text-xs text-gray-600">Add</span>
               </div>
             </div>
             
@@ -122,9 +132,20 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Patient Cards */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Mobile Search */}
+      <div className="md:hidden bg-white px-4 py-3 border-b border-gray-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search patients..."
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Patient Cards - Mobile Optimized */}
+      <div className="px-4 py-4 md:px-6 md:py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
           {patients.map((patient) => (
             <Link key={patient.id} to={`/patients/${patient.id}`}>
               <PatientCard patient={patient} />
