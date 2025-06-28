@@ -1,14 +1,18 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Copy, QrCode, User, Pill, Activity, CheckSquare, Users, Heart, Plus } from 'lucide-react';
+import { ArrowLeft, Copy, QrCode, User, Pill, Activity, CheckSquare, Users, Heart, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import CareTeamPhotoStack from '@/components/CareTeamPhotoStack';
+import CareTeam from '@/components/CareTeam';
 
 const PatientDetail = () => {
   const { id } = useParams();
+  const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
+  const [showCareTeamDetails, setShowCareTeamDetails] = useState(false);
   
   // Mock patient data
   const patient = {
@@ -74,10 +78,39 @@ const PatientDetail = () => {
     ]
   };
 
-  const careTeam = [
-    { role: "Primary Surgeon", name: "Dr Giri S.", avatar: "👨‍⚕️" },
-    { role: "Resident", name: "Dr Sharma R.", avatar: "👩‍⚕️" },
-    { role: "Primary Nurse", name: "RN Lakshmi P.", avatar: "👩‍⚕️" }
+  const teamMembers = [
+    {
+      role: 'Primary Surgeon',
+      name: 'Dr. Giri S.',
+      avatar: '/lovable-uploads/7b52697c-e4e0-4187-b173-688b6eb5367f.png',
+      initials: 'GS',
+      department: 'Surgery',
+      contact: '+91-9876543210'
+    },
+    {
+      role: 'Resident',
+      name: 'Dr. Sharma R.',
+      avatar: '/lovable-uploads/7b52697c-e4e0-4187-b173-688b6eb5367f.png',
+      initials: 'SR',
+      department: 'Surgery',
+      contact: '+91-9876543211'
+    },
+    {
+      role: 'Primary Nurse',
+      name: 'RN Lakshmi P.',
+      avatar: '/lovable-uploads/7b52697c-e4e0-4187-b173-688b6eb5367f.png',
+      initials: 'LP',
+      department: 'Ward 3A',
+      contact: '+91-9876543212'
+    },
+    {
+      role: 'Physiotherapist',
+      name: 'PT Rajesh K.',
+      avatar: '/lovable-uploads/7b52697c-e4e0-4187-b173-688b6eb5367f.png',
+      initials: 'RK',
+      department: 'Rehab',
+      contact: '+91-9876543213'
+    }
   ];
 
   const handleCopyMRN = () => {
@@ -99,7 +132,7 @@ const PatientDetail = () => {
             <span className="text-sm text-gray-500">← All Patients</span>
           </div>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold text-gray-900">
                 {patient.name} ({patient.sex} {patient.age}y)
@@ -122,16 +155,101 @@ const PatientDetail = () => {
               {patient.stage}
             </span>
           </div>
+
+          {/* Care Team Photo Stack */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Care Team:</span>
+              <CareTeamPhotoStack 
+                teamMembers={teamMembers} 
+                onDetailsClick={() => setShowCareTeamDetails(!showCareTeamDetails)}
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Collapsible Diagnosis Section */}
+        <Collapsible open={isDiagnosisOpen} onOpenChange={setIsDiagnosisOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200 cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-2">
+                <Heart className="w-4 h-4 text-red-500" />
+                <span className="font-medium text-gray-900">Diagnosis & Timeline</span>
+              </div>
+              {isDiagnosisOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-4 bg-white border-b border-gray-200">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">Primary Diagnosis</label>
+                  <span className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-base font-medium">
+                    {patient.primaryDiagnosis}
+                  </span>
+                </div>
+                
+                {patient.comorbidities.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-2">Comorbidities</label>
+                    <div className="flex flex-wrap gap-2">
+                      {patient.comorbidities.map((condition, index) => (
+                        <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                          {condition}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">Current Stage & Days</label>
+                  <span className="text-base font-semibold text-gray-900">
+                    {patient.currentStage} ({patient.stageDays} days)
+                  </span>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-3">Timeline / History</label>
+                  <div className="relative">
+                    <div className="flex items-center space-x-2">
+                      {patient.timeline.map((segment, index) => (
+                        <div key={index} className="flex items-center">
+                          <div 
+                            className="px-4 py-2 rounded-lg text-white font-medium text-sm"
+                            style={{ backgroundColor: segment.color }}
+                          >
+                            {segment.label}
+                          </div>
+                          {index < patient.timeline.length - 1 && (
+                            <div className="mx-2 text-gray-400 text-lg">→</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Surgery → ICU (2 days) → Ward (3 days)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Care Team Details (Collapsible) */}
+        {showCareTeamDetails && (
+          <div className="border-b border-gray-200 bg-white">
+            <div className="p-4">
+              <CareTeam patientId={patient.id || ''} />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
-        <Tabs defaultValue="diagnosis" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="diagnosis" className="flex flex-col items-center gap-1 p-3">
-              <Heart className="w-4 h-4" />
-              <span className="text-xs">Diagnosis</span>
-            </TabsTrigger>
+        <Tabs defaultValue="medications" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="medications" className="flex flex-col items-center gap-1 p-3">
               <Pill className="w-4 h-4" />
               <span className="text-xs">Medications</span>
@@ -144,72 +262,7 @@ const PatientDetail = () => {
               <CheckSquare className="w-4 h-4" />
               <span className="text-xs">Tasks</span>
             </TabsTrigger>
-            <TabsTrigger value="team" className="flex flex-col items-center gap-1 p-3">
-              <Users className="w-4 h-4" />
-              <span className="text-xs">Care Team</span>
-            </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="diagnosis">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Diagnosis & Stage</h2>
-                
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 block mb-2">Primary Diagnosis</label>
-                    <span className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-base font-medium">
-                      {patient.primaryDiagnosis}
-                    </span>
-                  </div>
-                  
-                  {patient.comorbidities.length > 0 && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Comorbidities</label>
-                      <div className="flex flex-wrap gap-2">
-                        {patient.comorbidities.map((condition, index) => (
-                          <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                            {condition}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 block mb-2">Current Stage & Days</label>
-                    <span className="text-base font-semibold text-gray-900">
-                      {patient.currentStage} ({patient.stageDays} days)
-                    </span>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 block mb-3">Timeline / History</label>
-                    <div className="relative">
-                      <div className="flex items-center space-x-2">
-                        {patient.timeline.map((segment, index) => (
-                          <div key={index} className="flex items-center">
-                            <div 
-                              className="px-4 py-2 rounded-lg text-white font-medium text-sm"
-                              style={{ backgroundColor: segment.color }}
-                            >
-                              {segment.label}
-                            </div>
-                            {index < patient.timeline.length - 1 && (
-                              <div className="mx-2 text-gray-400 text-lg">→</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">
-                        Surgery → ICU (2 days) → Ward (3 days)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
 
           <TabsContent value="medications">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
@@ -334,33 +387,6 @@ const PatientDetail = () => {
                       ))}
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="team">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Care Team</h2>
-                  <button className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <Plus className="w-5 h-5 text-white" />
-                  </button>
-                </div>
-                
-                <div className="space-y-4">
-                  {careTeam.map((member, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-                        {member.avatar}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900 text-base">{member.name}</div>
-                        <div className="text-sm text-gray-600">{member.role}</div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
