@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Copy, QrCode, User, Pill, Activity, CheckSquare, Users, Heart, Plus, ChevronDown, ChevronUp, MoreHorizontal, Check, X, AlertTriangle, Clock, Timer, Zap, Stethoscope, AlertCircle, Calendar, Download, Eye } from 'lucide-react';
@@ -71,8 +70,8 @@ const MedicationRow = ({ medication, date, selectedTimes, onToggleTime, getMedic
             const [hours, minutes] = time.split(':');
             scheduleTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
             
-            const isPast = currentTime > scheduleTime;
-            const isUpcoming = !isPast && (scheduleTime - currentTime) < 2 * 60 * 60 * 1000;
+            const isPast = currentTime.getTime() > scheduleTime.getTime();
+            const isUpcoming = !isPast && (scheduleTime.getTime() - currentTime.getTime()) < 2 * 60 * 60 * 1000;
             
             if (status === 'given') {
               buttonClass += ' bg-green-500 text-white border-green-500';
@@ -95,6 +94,13 @@ const MedicationRow = ({ medication, date, selectedTimes, onToggleTime, getMedic
             }
           }
           
+          const scheduleTime = new Date();
+          const [hours, minutes] = time.split(':');
+          scheduleTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          const isUpcomingTime = isToday && !status && 
+            currentTime.getTime() < scheduleTime.getTime() &&
+            (scheduleTime.getTime() - currentTime.getTime()) < 2 * 60 * 60 * 1000;
+          
           return (
             <button
               key={`${medication.id}-${time}`}
@@ -103,11 +109,7 @@ const MedicationRow = ({ medication, date, selectedTimes, onToggleTime, getMedic
             >
               {status === 'given' && <Check className="w-3 h-3" />}
               {status === 'missed' && <X className="w-3 h-3" />}
-              {isToday && !status && (
-                currentTime < new Date().setHours(...time.split(':'), 0, 0) &&
-                (new Date().setHours(...time.split(':'), 0, 0) - currentTime) < 2 * 60 * 60 * 1000 &&
-                <Timer className="w-3 h-3" />
-              )}
+              {isUpcomingTime && <Timer className="w-3 h-3" />}
               {time}
             </button>
           );
@@ -123,6 +125,7 @@ const PatientDetail = () => {
   const [showCareTeamDetails, setShowCareTeamDetails] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [currentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'calendar'
   
   // Mock patient data
   const patient = {
@@ -334,7 +337,7 @@ const PatientDetail = () => {
           const [hours, minutes] = time.split(':');
           scheduleTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
           
-          const timeDiff = scheduleTime - currentTime;
+          const timeDiff = scheduleTime.getTime() - currentTime.getTime();
           if (timeDiff > 0 && timeDiff < 2 * 60 * 60 * 1000) { // within 2 hours
             upcoming.push({
               medication: med,
@@ -525,6 +528,22 @@ const PatientDetail = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setViewMode(viewMode === 'daily' ? 'calendar' : 'daily')}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {viewMode === 'daily' ? (
+                        <>
+                          <Calendar className="w-4 h-4" />
+                          Calendar View
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4" />
+                          Daily View
+                        </>
+                      )}
+                    </button>
                     <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                       <Download className="w-4 h-4" />
                       Export
@@ -634,67 +653,78 @@ const PatientDetail = () => {
                 </div>
               )}
 
-              {/* Two Day View */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {/* Yesterday */}
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <div className="bg-gray-50 p-4 border-b">
-                    <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Yesterday • {yesterday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      <span className="text-sm text-gray-600">(Day 2)</span>
-                    </h2>
+              {viewMode === 'daily' ? (
+                /* Two Day View */
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {/* Yesterday */}
+                  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="bg-gray-50 p-4 border-b">
+                      <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Yesterday • {yesterday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        <span className="text-sm text-gray-600">(Day 2)</span>
+                      </h2>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                      {medications
+                        .filter(med => isMedicationActiveOnDate(med, yesterday))
+                        .map(medication => (
+                          <MedicationRow 
+                            key={`yesterday-${medication.id}`}
+                            medication={medication}
+                            date={yesterday}
+                            selectedTimes={selectedTimes}
+                            onToggleTime={toggleMedicationTime}
+                            getMedicationTimeStatus={getMedicationTimeStatus}
+                            isToday={false}
+                          />
+                        ))}
+                    </div>
                   </div>
-                  <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                    {medications
-                      .filter(med => isMedicationActiveOnDate(med, yesterday))
-                      .map(medication => (
-                        <MedicationRow 
-                          key={`yesterday-${medication.id}`}
-                          medication={medication}
-                          date={yesterday}
-                          selectedTimes={selectedTimes}
-                          onToggleTime={toggleMedicationTime}
-                          getMedicationTimeStatus={getMedicationTimeStatus}
-                          isToday={false}
-                        />
-                      ))}
-                  </div>
-                </div>
 
-                {/* Today */}
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <div className="bg-blue-50 p-4 border-b">
-                    <h2 className="font-semibold text-blue-800 flex items-center gap-2">
-                      <Activity className="w-4 h-4" />
-                      Today • {currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      <span className="text-sm text-blue-600">(Day 3)</span>
-                    </h2>
-                  </div>
-                  <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                    {medications
-                      .filter(med => isMedicationActiveOnDate(med, currentDate))
-                      .sort((a, b) => {
-                        if (a.changes && !b.changes) return -1;
-                        if (!a.changes && b.changes) return 1;
-                        if (a.priority === 'high' && b.priority !== 'high') return -1;
-                        if (a.priority !== 'high' && b.priority === 'high') return 1;
-                        return 0;
-                      })
-                      .map(medication => (
-                        <MedicationRow 
-                          key={`today-${medication.id}`}
-                          medication={medication}
-                          date={currentDate}
-                          selectedTimes={selectedTimes}
-                          onToggleTime={toggleMedicationTime}
-                          getMedicationTimeStatus={getMedicationTimeStatus}
-                          isToday={true}
-                        />
-                      ))}
+                  {/* Today */}
+                  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="bg-blue-50 p-4 border-b">
+                      <h2 className="font-semibold text-blue-800 flex items-center gap-2">
+                        <Activity className="w-4 h-4" />
+                        Today • {currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        <span className="text-sm text-blue-600">(Day 3)</span>
+                      </h2>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                      {medications
+                        .filter(med => isMedicationActiveOnDate(med, currentDate))
+                        .sort((a, b) => {
+                          if (a.changes && !b.changes) return -1;
+                          if (!a.changes && b.changes) return 1;
+                          if (a.priority === 'high' && b.priority !== 'high') return -1;
+                          if (a.priority !== 'high' && b.priority === 'high') return 1;
+                          return 0;
+                        })
+                        .map(medication => (
+                          <MedicationRow 
+                            key={`today-${medication.id}`}
+                            medication={medication}
+                            date={currentDate}
+                            selectedTimes={selectedTimes}
+                            onToggleTime={toggleMedicationTime}
+                            getMedicationTimeStatus={getMedicationTimeStatus}
+                            isToday={true}
+                          />
+                        ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Calendar View Placeholder */
+                <div className="bg-white rounded-xl shadow-sm p-8">
+                  <div className="text-center">
+                    <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
+                    <p className="text-gray-600">Monthly medication calendar coming soon...</p>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
